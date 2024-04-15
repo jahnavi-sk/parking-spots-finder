@@ -1,10 +1,13 @@
 const express = require("express");
 const cors = require("cors");
+const axios = require("axios");
+const geoip = require("geoip-lite");
+
 const app = express();
+const port = 3000;
+
 app.use(express.json());
 app.use(cors());
-
-const geoip = require("geoip-lite");
 
 // Example parking spot data
 const parkingSpots = [
@@ -17,20 +20,15 @@ const parkingSpots = [
 // Endpoint to get nearby parking spots
 app.get('/parking/nearby', (req, res) => {
   try {
-    // Get user's IP address from request headers
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    
-    // Use "geoip-lite" to get user's location from IP
-    const geo = geoip.lookup(ip);
-    
-    if (!geo) {
-      return res.status(400).json({ error: 'Could not retrieve user location' });
-    }
-
+    // Assume user's location is passed in the request query params as lat and lng
     const userLocation = {
-      lat: geo.ll[0], // Latitude
-      lng: geo.ll[1]  // Longitude
+      lat: parseFloat(req.query.lat),
+      lng: parseFloat(req.query.lng),
     };
+
+    if (isNaN(userLocation.lat) || isNaN(userLocation.lng)) {
+      return res.status(400).json({ error: 'Invalid coordinates' });
+    }
 
     // Filter available spots within a certain radius (for simplicity, using a fixed radius of 0.1 degrees)
     const radius = 0.1;
@@ -46,6 +44,33 @@ app.get('/parking/nearby', (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Endpoint to get directions
+app.get('/directions', async (req, res) => {
+  const { start, end } = req.query;
+  const apiKey = 'API_KEY'; // Get your API key from openrouteservice.org
+
+  if (!start || !end) {
+    return res.status(400).json({ error: 'Please provide both start and end coordinates' });
+  }
+
+  // Make sure coordinates are in the format "longitude,latitude"
+  const startCoords = start.split(',').reverse().join(',');
+  const endCoords = end.split(',').reverse().join(',');
+
+  const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${apiKey}&start=${startCoords}&end=${endCoords}`;
+
+  try {
+    const response = await axios.get(url);
+    const data = response.data;
+    
+    res.json(data);
+    
+  } catch (error) {
+    console.error('Error fetching directions:', error.message);
+    res.status(500).json({ error: 'Failed to fetch directions' });
   }
 });
 
@@ -72,6 +97,6 @@ function deg2rad(deg) {
   return deg * (Math.PI / 180);
 }
 
-app.listen(3001, () => {
-  console.log('Server is running on port 3001');
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });
