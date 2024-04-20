@@ -1,17 +1,16 @@
 const express = require("express");
 const cors = require("cors");
 const axios = require("axios");
-const geoip = require("geoip-lite");
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
 app.use(express.json());
 app.use(cors());
 
 // Example parking spot data
 const parkingSpots = [
-  { id: 1, name: "Parking Lot 1", available: true, location: { lat: 37.7749, lng: -122.4194 } },
+  { id: 1, name: "Parking Lot 1", available: true, location: { lat: 12.8637308, lng: 77.6661602 } },
   { id: 2, name: "Parking Lot 2", available: false, location: { lat: 37.7746, lng: -122.4188 } },
   { id: 3, name: "Parking Lot 3", available: true, location: { lat: 37.7742, lng: 122.4156 } },
   { id: 4, name: "Parking Lot 4", available: true, location: { lat: 37.7747, lng: -122.4179 } },
@@ -66,7 +65,9 @@ app.get('/directions', async (req, res) => {
     const response = await axios.get(url);
     const data = response.data;
     
-    res.json(data);
+    const instructions = data.features[0].properties.segments[0].steps.map(step => step.instruction);
+
+    res.json(instructions);
     
   } catch (error) {
     console.error('Error fetching directions:', error.message);
