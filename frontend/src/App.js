@@ -263,16 +263,17 @@ export default function App(){
                   <div className="row card-box align-left">
                     
                   <MapContainer style={containerStyle} center={center} zoom={12}>
-                <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                {userCoords.latitude && userCoords.longitude && (
-          <Marker position={[userCoords.latitude, userCoords.longitude]} />
-        )}
-        <Marker position={[endCoords.latitude, endCoords.longitude]} />
+                      <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      {userCoords.latitude && userCoords.longitude && (
+                        <Marker position={[userCoords.latitude, userCoords.longitude]} />
+                      )}
+                      {endCoords.latitude && endCoords.longitude && (
+                        <Marker position={[endCoords.latitude, endCoords.longitude]} />
+                      )}
+                </MapContainer>
 
-                {/* {directions && <Polyline positions={directions} />} */}
-            </MapContainer>
                     
               
                   </div>
